@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pede Pizza</title>
+    <style>
+        
+        body{
+            background-color: black;
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .container{
+            width: 560px;
+            margin: 0 auto 0 auto;
+            background-color: rgb(6, 72, 83);
+        }
+        section h1{
+            text-align: center;
+            padding: 10px 0 10px;
+            background-color: rgb(123, 151, 235);
+        }
+        #cart span{
+            background-color: red;
+            width: auto;
+            font-size: 25px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <section>
+            <h1>Lista pizzas</h1>
+            <form id="formPizzas">
+                <input type="checkbox" name="pizza[]" data-name="Margherita" value="35.20"> Margherita - R$ 35.20<br>
+                <input type="checkbox" name="pizza[]" data-name="Calabresa" value="40.20"> Calabresa - R$ 40.20<br>
+                <input type="checkbox" name="pizza[]" data-name="Portuguesa" value="45.20"> Portuguesa - R$ 45.20<br>
+                <input type="checkbox" name="pizza[]" data-name="Napolitana" value="50.20"> Napolitana - R$ 50.20<br>
+                <input type="checkbox" name="pizza[]" data-name="Quatro Queijos" value="55.20"> Quatro Queijos - R$ 55.20<br>
+                <input type="checkbox" name="pizza[]" data-name="Calabresa com Catupiry" value="60.20"> Calabresa com Catupiry - R$ 60.20<br>
+                <input type="checkbox" name="pizza[]" data-name="Portuguesa com Catupiry" value="65.20"> Portuguesa com Catupiry - R$ 65.20<br>
+                <input type="checkbox" name="pizza[]" data-name="Napolitana com Catupiry" value="70.20"> Napolitana com Catupiry - R$ 70.20<br>
+        </section>
+        <section>
+            <div class="cart">
+                <h1>Carrinho</h1>
+                <div id="cart">
+                </div>
+                <div>
+                    <h2><span id="total"></span></h2>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+
+    <script>
+        var chk = document.querySelectorAll('input[type=checkbox]');
+        var cart = document.querySelector('#cart');
+        let itens = [];
+        // adiciona mensagem se carrinho vazio
+        if(itens.length == 0){
+
+            cart.innerHTML = '<h3>Carrinho vazio</h3><span>R$ 0.00</span>';
+            document.querySelector('#total').style.backgroundColor = 'red';
+        }
+            // Calcula o total
+            function calcTotal(){
+
+            let total = 0;
+            let pizzas = JSON.parse(localStorage.getItem('pizzas'));
+            pizzas.forEach(function(item){
+                total += parseFloat(item.value);
+            })
+            if(total=== 0){
+                document.querySelector('#total').style.backgroundColor = 'red';
+                cart.innerHTML = '<h2>Carrinho vazio</h2>';
+            }else{
+                document.querySelector('#total').style.backgroundColor = 'green';
+            }
+            document.querySelector('#total').innerHTML = Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'}).format(total);
+        }
+
+        // adicionar ao localStorage os itens apos clicar no checkbox
+        chk.forEach(function(pizza){
+            pizza.addEventListener('click', function(){
+                // Se checado, adiciona item no localStorage
+                if(pizza.checked){
+                    let item = {
+                        name: pizza.dataset.name,
+                        value: pizza.value
+                    }
+                    itens.push(item);
+                    localStorage.setItem('pizzas', JSON.stringify(itens));
+                    // Exibir no carrinho
+                    cart.innerHTML = '';
+                    itens.forEach(function(item,){
+                        let index = itens.indexOf(item);
+                        cart.innerHTML += `<p>${item.name} - R$ ${item.value} - <button onClick="removeByIndex(${index})">X</button></p></p>`;
+                    })
+                    calcTotal();
+                }else{
+                    // Se desmarcado, remove item do localStorage
+                    let index = itens.findIndex(item => item.name == pizza.dataset.name);
+                    itens.splice(index, 1);
+                    localStorage.setItem('pizzas', JSON.stringify(itens));
+                    // Exibir no carrinho
+                    cart.innerHTML = '';
+                    itens.forEach(function(item){
+                        let indice = itens.indexOf(item);
+                        cart.innerHTML += `<p>${item.name} - R$ ${item.value} - <button onClick="removeByIndex(${indice})">X</button></p>`;
+                    })
+                    calcTotal();
+                }
+            });
+        });
+
+        // Remover item pelo index
+        function removeByIndex(index) {
+
+            // Pega o item no localStorage pelo index
+            let pizzas = JSON.parse(localStorage.getItem('pizzas'));
+
+            // Remove o item pelo index
+            pizzas.splice(index, 1);
+
+            // Exibir no carrinho
+            cart.innerHTML = '';
+            pizzas.forEach(function(item){
+                let indice = pizzas.indexOf(item);
+                cart.innerHTML += `<p>${item.name} - R$ ${item.value} - <button onClick="removeByIndex(${indice})">X</button></p>`;
+            })
+
+            localStorage.setItem('pizzas', JSON.stringify(pizzas));
+            // Atualizar o array de itens
+            itens = pizzas;
+
+            // Pega todos os checkbox
+            let checkboxes = document.querySelectorAll('input[type=checkbox]');
+            // pega todos os itens do localStorage
+            let itensStorage = JSON.parse(localStorage.getItem('pizzas'));
+
+            // Desmarca todos os checkbox que não estao no localStorage
+            checkboxes.forEach(function(checkbox){
+                let index = itensStorage.findIndex(item => item.name == checkbox.dataset.name);
+                if(index == -1){
+                    checkbox.checked = false;
+                }
+            });
+
+            calcTotal();
+        
+        }
+    </script>
+
+</html>
